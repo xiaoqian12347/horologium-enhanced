@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "LTL",
+    " D "
+  ],
+  "key": {
+    "G": {
+      "item": "astralsorcery:itemcraftingcomponent",
+      "data": 4
+    },
+    "L": {
+      "item": "astralsorcery:itemlinkingtool"
+    },
+    "T": {
+      "item": "astralsorcery:itemshiftingstar"
+    },
+    "D": {
+      "item": "astralsorcery:itemcraftingcomponent",
+      "data": 2
+    }
+  },
+  "result": {
+    "item": "horologium_positioning:starlight_binder",
+    "count": 1
+  }
+}

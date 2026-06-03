@@ -1,0 +1,7 @@
+item.starlight_binder.name=Ritual Adjuster
+# Display Config
+horologium_positioning.config.show_altar=Show Altar Starlight
+horologium_positioning.config.show_pedestal=Show Ritual Pedestal
+horologium_positioning.config.show_tree_beacon=Show Tree Beacon
+horologium_positioning.config.show_bore=Show Infinity Fountain
+horologium_positioning.config.show_attunement_altar=Show Attunement Altar

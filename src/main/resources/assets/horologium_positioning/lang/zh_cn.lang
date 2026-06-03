@@ -1,0 +1,7 @@
+item.starlight_binder.name=仪式调整器
+# 显示配置
+horologium_positioning.config.show_altar=显示祭坛星辉
+horologium_positioning.config.show_pedestal=显示仪式基座
+horologium_positioning.config.show_tree_beacon=显示树之信标
+horologium_positioning.config.show_bore=显示万象泉
+horologium_positioning.config.show_attunement_altar=显示共鸣祭坛

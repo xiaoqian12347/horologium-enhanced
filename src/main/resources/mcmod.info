@@ -1,0 +1,16 @@
+[
+{
+  "modid": "horologium_positioning",
+  "name": "时钟定位 | Horologium Positioning",
+  "description": "为星辉魔法提供时钟座效果定向绑定功能，通过时钟仪轨将时钟座加速效果精确投射到指定机器，同时支持振变座时间冻结。附带祭坛星能悬浮显示与星座信息展示。",
+  "version": "",
+  "mcversion": "",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["xiaoqian"],
+  "credits": "感谢 HellFirePVP 开发的星辉魔法 (Astral Sorcery)",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": ["astralsorcery"]
+}
+]

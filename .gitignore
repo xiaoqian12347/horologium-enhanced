@@ -1,0 +1,44 @@
+# Gradle
+.gradle/
+build/
+gradle/
+gradlew
+gradlew.bat
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+*.launch
+bin/
+
+# Minecraft runtime
+run/
+.minecraft/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Compiled
+*.class
+*.jar
+
+# Mod libs (AS jar is large, users should download separately)
+libs/
+
+# Backup
+*.bak
+# Temp files
+fix_binder.py
+build_output.txt
+raw_dump.txt
+changelog.txt
