@@ -104,7 +104,6 @@ public class BinderBindingHandler {
         if (te == null) { Untitled.logger.warn("[Binder] getEffectiveRangeForNode: TE null at {}", ritualNode); return getHorologiumRange(); }
         TileEntity pedestal = resolveToPedestal(te);
         int range = (pedestal != null) ? getPedestalRange(pedestal) : getHorologiumRange();
-        Untitled.logger.info("[Binder] getEffectiveRangeForNode: node={}, pedestal={}, range={}", ritualNode, pedestal != null ? pedestal.getPos() : "null", range);
         return range;
     }
 
@@ -172,8 +171,7 @@ public class BinderBindingHandler {
                         if (modify != null) {
                             modify.setAccessible(true);
                             effectProps = modify.invoke(effectProps, minorConstellation);
-                            Untitled.logger.info("[Binder] After modify({}): size={}", minorConstellation.getClass().getSimpleName(),
-                                    ((Number) findMethod(effectProps.getClass(), "getSize").invoke(effectProps)).doubleValue());
+
                         }
                     }
                     Method getSize = findMethod(effectProps.getClass(), "getSize");
@@ -181,8 +179,7 @@ public class BinderBindingHandler {
                         getSize.setAccessible(true);
                         double size = (double) getSize.invoke(effectProps);
                         int range = (int) Math.ceil(size);
-                        Untitled.logger.info("[Binder] Pedestal range={} (size={}, collective={}, trait={})",
-                                range, size, collective, minorConstellation != null ? minorConstellation.getClass().getSimpleName() : "none");
+
                         return range;
                     }
                 }
@@ -247,8 +244,7 @@ if (removed) {
                 TileEntity pedestal = resolveToPedestal(te);
                 if (pedestal == null) break;
                 clearCECache(pedestal);
-                Untitled.logger.info("[Binder] Cleared CE cache for node at {}", ritualPos);
-                break;
+break;
             }
         } catch (Exception e) {
             Untitled.logger.error("[Binder] clearCECacheForNode error: {}", e.toString());
@@ -282,7 +278,7 @@ if (removed) {
                 if (enabledField != null) { enabledField.setAccessible(true); enabledField.setBoolean(ce, true); }
                 // Set ce to null so AS recreates a fresh CE with original verifier
                 ceField.set(receiver, null);
-                Untitled.logger.info("[Binder] Cleared CE cache and nulled CE on pedestal");
+
             }
         } catch (Exception ignored) {}
     }
@@ -438,13 +434,11 @@ if (removed) {
                 if (te == null) continue;
 TileEntity pedestal = resolveToPedestal(te);
                     if (pedestal == null) {
-                        if (tickCount % 100 == 0) {
-                            Untitled.logger.warn("[Binder] resolveToPedestal returned null for {} at {}", te.getClass().getSimpleName(), ritualPos);
-                        }
+    
                         break;
                     }
                     if (tickCount % 100 == 0) {
-                        Untitled.logger.info("[Binder] Resolved {} -> pedestal {} at {}", ritualPos, pedestal.getClass().getSimpleName(), pedestal.getPos());
+                        if (tickCount % 200 == 0) Untitled.logger.info("[Binder] Resolved {} -> pedestal {}", ritualPos, pedestal.getPos());
                     }
                     // Range validation every 20 ticks: disconnect out-of-range machines immediately
                     if (tickCount % 20 == 0) {
@@ -632,7 +626,7 @@ TileEntity pedestal = resolveToPedestal(te);
             }
 
             if (tickCount % 200 == 0) {
-                Untitled.logger.info("[Binder] Injected {} positions (maxCount={}) for {} machines", elements.size(), maxCount, boundMachines.size());
+                if (tickCount % 200 == 0) Untitled.logger.info("[Binder] Injected {} positions for {} machines", elements.size(), boundMachines.size());
             }
 
         } catch (Exception e) {
@@ -662,7 +656,7 @@ TileEntity pedestal = resolveToPedestal(te);
             if (g != null) linkedPos = (BlockPos) g.invoke(te);
         } catch (Exception ignored) {}
 
-        Untitled.logger.info("[Binder] resolveToPedestal: tePos={}, linkedPos={}, teType={}", tePos, linkedPos, te.getClass().getSimpleName());
+
 
         int pedestalCount = 0;
         for (Object obj : te.getWorld().loadedTileEntityList) {
@@ -671,9 +665,9 @@ TileEntity pedestal = resolveToPedestal(te);
             pedestalCount++;
             try {
                 Method getCache = findMethod(candidate.getClass(), "getUpdateCache");
-                if (getCache == null) { Untitled.logger.warn("[Binder] getCache null for {}", candidate.getPos()); continue; }
+                if (getCache == null) continue;
                 Object receiver = getCache.invoke(candidate);
-                if (receiver == null) { Untitled.logger.warn("[Binder] receiver null for {}", candidate.getPos()); continue; }
+                if (receiver == null) continue;
 
                 // Dump offsetMirrors
                 Field mirrorsField = findField(receiver.getClass(), "offsetMirrors");
@@ -681,16 +675,12 @@ TileEntity pedestal = resolveToPedestal(te);
                     mirrorsField.setAccessible(true);
                     @SuppressWarnings("unchecked")
                     java.util.Map<BlockPos, Boolean> mirrors = (java.util.Map<BlockPos, Boolean>) mirrorsField.get(receiver);
-                    Untitled.logger.info("[Binder] Pedestal {} offsetMirrors: {} entries, keys={}", candidate.getPos(),
-                            mirrors != null ? mirrors.size() : "null", mirrors != null ? mirrors.keySet() : "null");
                     if (mirrors != null) {
                         if (mirrors.containsKey(tePos)) {
-                            Untitled.logger.info("[Binder] MATCH (self) in pedestal {}", candidate.getPos());
                             PEDestalCache.put(tePos, candidate.getPos());
                             return candidate;
                         }
                         if (linkedPos != null && mirrors.containsKey(linkedPos)) {
-                            Untitled.logger.info("[Binder] MATCH (linked) in pedestal {}", candidate.getPos());
                             PEDestalCache.put(tePos, candidate.getPos());
                             return candidate;
                         }
@@ -702,10 +692,8 @@ TileEntity pedestal = resolveToPedestal(te);
                 if (linkToField != null) {
                     linkToField.setAccessible(true);
                     BlockPos ritualLinkTo = (BlockPos) linkToField.get(receiver);
-                    Untitled.logger.info("[Binder] Pedestal {} ritualLinkTo={}", candidate.getPos(), ritualLinkTo);
                     if (ritualLinkTo != null) {
                         if (ritualLinkTo.equals(tePos) || ritualLinkTo.equals(linkedPos)) {
-                            Untitled.logger.info("[Binder] MATCH via ritualLinkTo on pedestal {}", candidate.getPos());
                             PEDestalCache.put(tePos, candidate.getPos());
                             return candidate;
                         }
@@ -716,7 +704,7 @@ TileEntity pedestal = resolveToPedestal(te);
             }
         }
 
-        Untitled.logger.warn("[Binder] No pedestal found. Scanned {} pedestals. tePos={}, linkedPos={}", pedestalCount, tePos, linkedPos);
+
         return null;
     }
     private static Method findMethod(Class<?> c, String n) {
