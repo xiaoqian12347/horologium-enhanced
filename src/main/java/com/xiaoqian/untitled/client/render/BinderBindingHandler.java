@@ -438,7 +438,7 @@ TileEntity pedestal = resolveToPedestal(te);
                         break;
                     }
                     if (tickCount % 100 == 0) {
-                        if (tickCount % 200 == 0) Untitled.logger.info("[Binder] Resolved {} -> pedestal {}", ritualPos, pedestal.getPos());
+                        
                     }
                     // Range validation every 20 ticks: disconnect out-of-range machines immediately
                     if (tickCount % 20 == 0) {
@@ -626,7 +626,7 @@ TileEntity pedestal = resolveToPedestal(te);
             }
 
             if (tickCount % 200 == 0) {
-                if (tickCount % 200 == 0) Untitled.logger.info("[Binder] Injected {} positions for {} machines", elements.size(), boundMachines.size());
+                
             }
 
         } catch (Exception e) {
