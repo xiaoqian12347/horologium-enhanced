@@ -13,7 +13,7 @@ public class Untitled
 {
     public static final String MODID = "horologium_positioning";
     public static final String NAME = "时钟定位 | Horologium Positioning";
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "1.02";
 
     public static Logger logger;
 
@@ -25,13 +25,10 @@ public class Untitled
     }
 
     @EventHandler
-    public void init(FMLInitializationEvent event)
-    {
+    public void init(FMLInitializationEvent event) {
         logger.info("Astral Sorcery Addon initialized.");
         StarlightNetHandler.init();
+
         MinecraftForge.EVENT_BUS.register(StarlightNetHandler.class);
-        MinecraftForge.EVENT_BUS.register(com.xiaoqian.untitled.client.render.BinderBindingHandler.class);
-        MinecraftForge.EVENT_BUS.register(com.xiaoqian.untitled.client.render.BinderScrollHandler.class);
-        MinecraftForge.EVENT_BUS.register(com.xiaoqian.untitled.client.render.RitualNodeInteractionHandler.class);
     }
 }

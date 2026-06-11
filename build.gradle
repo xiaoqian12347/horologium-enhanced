@@ -24,7 +24,7 @@ repositories.each {
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.0'
+version = '1.02'
 group = 'com.xiaoqian'
 archivesBaseName = 'Horologium-Positioning'
 
