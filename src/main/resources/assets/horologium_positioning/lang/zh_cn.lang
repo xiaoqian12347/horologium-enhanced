@@ -5,3 +5,51 @@ horologium_positioning.config.show_pedestal=显示仪式基座
 horologium_positioning.config.show_tree_beacon=显示树之信标
 horologium_positioning.config.show_bore=显示万象泉
 horologium_positioning.config.show_attunement_altar=显示共鸣祭坛
+
+# 绑定器消息
+message.binder.cleared=[Binder] 已清空所有选择
+message.binder.unbound_node=[Binder] 已解绑节点
+message.binder.no_machine_selected=[Binder] 未选择机器
+message.binder.already_in_list=[Binder] 已在列表中
+message.binder.selected=[Binder] 已选择 [%s] (%s, %s, %s)
+message.binder.bound_machines=[Binder] 已绑定 %s 台机器
+message.binder.out_of_range=[Binder] %s 台机器超出范围 (最大 %s 格)
+message.binder.no_connection=[Binder] 暂无连接 | 上限: %s | 范围: %s 格
+message.binder.connected=[Binder] 已连接: %s/%s | 范围: %s 格
+message.binder.machine_removed=[Binder] 已移除机器
+message.binder.node_unbound=[Binder] 节点已解绑
+message.binder.not_bound=[Binder] 该机器未绑定
+message.binder.anchor_has_binding=[Binder] 对应仪式锚已有绑定，无法在此绑定
+message.binder.pedestal_has_binding=[Binder] 对应仪式基座已有绑定，无法在此绑定
+message.binder.bind_mode=[Binder] 绑定模式
+message.binder.unbind_mode=[Binder] 解绑模式
+message.binder.scroll_hint=Shift+滚轮: 切换模式
+message.binder.right_click_hint=Shift+右键: 操作
+
+# 仪式锚消息
+message.anchor.linked=[基座] 仪式锚坐标: X:%s Y:%s Z:%s
+message.anchor.not_linked=[基座] 未链接仪式锚
+
+# 渲染标签
+label.altar.discovery=星辉合成台
+label.altar.collector=星辉祭坛
+label.altar.constellation=天辉祭坛
+label.altar.astral=五彩祭坛
+label.altar.generic=祭坛
+label.pedestal=仪式基座
+label.tree_beacon=树木信标
+label.bore=万象泉
+label.attunement_altar=共鸣祭坛
+
+# 信息格式
+info.altar.stored=%s / %s
+info.altar.with_constellation=%s / %s §b%s
+info.pedestal.buffer_chanled=%s [%d]
+info.pedestal.buffer=%s
+info.pedestal.multiblock_ok=[MB OK]
+info.pedestal.multiblock_missing=[--]
+info.pedestal.with_constellation=%s §b%s §7| §d%s
+info.tree_beacon.charge=%s
+info.bore.mb=%s mB
+info.attunement.constellation=§b%s
+info.attunement.none=§7-

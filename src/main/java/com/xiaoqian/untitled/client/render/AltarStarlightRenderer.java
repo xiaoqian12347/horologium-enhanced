@@ -1,5 +1,6 @@
 package com.xiaoqian.untitled.client.render;
 
+import com.xiaoqian.untitled.util.LocalizationUtil;
 import hellfirepvp.astralsorcery.common.tile.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -85,25 +86,26 @@ public class AltarStarlightRenderer {
         int color;
 
         StarlightNetHandler.CachedData cd = StarlightNetHandler.get(pos);
+        int stored, max;
         if (cd != null) {
-            int stored = (int) cd.val1;
-            int max = cd.val2;
+            stored = (int) cd.val1;
+            max = cd.val2;
             int levelOrd = cd.val3;
             color = altarColor(levelOrd);
-            info = stored + " / " + max;
         } else {
-            int stored = altar.getStarlightStored();
-            int max = altar.getMaxStarlightStorage();
+            stored = altar.getStarlightStored();
+            max = altar.getMaxStarlightStorage();
             color = altarColor(altar.getAltarLevel().ordinal());
-            info = stored + " / " + max;
         }
 
         if (!focusedName.isEmpty()) {
-            info = info + " §b" + focusedName;
+            info = LocalizationUtil.getAltarWithConstellationInfo(stored, max, focusedName);
+        } else {
+            info = LocalizationUtil.getAltarStoredInfo(stored, max);
         }
 
         int levelOrd = (cd != null) ? cd.val3 : altar.getAltarLevel().ordinal();
-        renderFloatingText(altarLabel(levelOrd), info, color, pos, px, py, pz, mc);
+        renderFloatingText(LocalizationUtil.getAltarLabel(levelOrd), info, color, pos, px, py, pz, mc);
     }
 
     private static void renderPedestal(TileRitualPedestal pedestal, double px, double py, double pz, Minecraft mc) {
@@ -140,10 +142,10 @@ public class AltarStarlightRenderer {
             boolean hasCrystal = (cd.flags & 2) != 0;
 
             if (hasCrystal || working) {
-                info = String.format("%.1f [%d]", buffer, channeled);
+                info = LocalizationUtil.getPedestalBufferChanneledInfo(buffer, channeled);
                 color = working ? 0xFFAA00 : 0xAA80FF;
             } else {
-                info = String.format("%.1f", buffer);
+                info = LocalizationUtil.getPedestalBufferInfo(buffer);
                 color = 0x5599FF;
             }
         } else {
@@ -151,19 +153,16 @@ public class AltarStarlightRenderer {
             try { working = pedestal.isWorking(); } catch (Exception ignored) {}
             boolean hasMB = false;
             try { hasMB = pedestal.hasMultiblock(); } catch (Exception ignored) {}
-            info = hasMB ? "[MB OK]" : "[--]";
+            info = hasMB ? LocalizationUtil.getPedestalMultiblockOk() : LocalizationUtil.getPedestalMultiblockMissing();
             color = 0x888888;
         }
 
         // Append constellation + trait if present
         if (!constellationName.isEmpty()) {
-            info = info + " §b" + constellationName;
-            if (!traitName.isEmpty()) {
-                info = info + " §7| §d" + traitName;
-            }
+            info = LocalizationUtil.getPedestalWithConstellationInfo(info, constellationName, traitName);
         }
 
-        renderFloatingText("仪式基座", info, color, pos, px, py, pz, mc);
+        renderFloatingText(LocalizationUtil.getPedestalLabel(), info, color, pos, px, py, pz, mc);
     }
 
     private static void renderTreeBeacon(TileTreeBeacon beacon, double px, double py, double pz, Minecraft mc) {
@@ -172,7 +171,7 @@ public class AltarStarlightRenderer {
 
         StarlightNetHandler.CachedData cd = StarlightNetHandler.get(pos);
         if (cd != null) {
-            renderFloatingText("树木信标", String.format("%.1f", cd.val1),
+            renderFloatingText(LocalizationUtil.getTreeBeaconLabel(), LocalizationUtil.getTreeBeaconChargeInfo(cd.val1),
                     0x55FF80, pos, px, py, pz, mc);
         } else {
             double charge = 0;
@@ -181,7 +180,7 @@ public class AltarStarlightRenderer {
                 f.setAccessible(true);
                 charge = f.getDouble(beacon);
             } catch (Exception ignored) {}
-            renderFloatingText("树木信标", String.format("%.1f", charge),
+            renderFloatingText(LocalizationUtil.getTreeBeaconLabel(), LocalizationUtil.getTreeBeaconChargeInfo(charge),
                     0x55FF80, pos, px, py, pz, mc);
         }
     }
@@ -192,7 +191,7 @@ public class AltarStarlightRenderer {
 
         StarlightNetHandler.CachedData cd = StarlightNetHandler.get(pos);
         if (cd != null) {
-            renderFloatingText("万象泉", (int) cd.val1 + " mB",
+            renderFloatingText(LocalizationUtil.getBoreLabel(), LocalizationUtil.getBoreMbInfo((int) cd.val1),
                     0xFF8844, pos, px, py, pz, mc);
         } else {
             int mb = 0;
@@ -201,7 +200,7 @@ public class AltarStarlightRenderer {
                 f.setAccessible(true);
                 mb = f.getInt(bore);
             } catch (Exception ignored) {}
-            renderFloatingText("万象泉", mb + " mB", 0xFF8844, pos, px, py, pz, mc);
+            renderFloatingText(LocalizationUtil.getBoreLabel(), LocalizationUtil.getBoreMbInfo(mb), 0xFF8844, pos, px, py, pz, mc);
         }
     }
 
@@ -236,12 +235,12 @@ public class AltarStarlightRenderer {
 
         String info;
         if (!constellationName.isEmpty()) {
-            info = "§b" + constellationName;
+            info = LocalizationUtil.getAttunementConstellationInfo(constellationName);
         } else {
-            info = "§7-";
+            info = LocalizationUtil.getAttunementNoneInfo();
         }
 
-        renderFloatingText("共鸣祭坛", info, 0xFFCC00, pos, px, py, pz, mc);
+        renderFloatingText(LocalizationUtil.getAttunementAltarLabel(), info, 0xFFCC00, pos, px, py, pz, mc);
     }
 
     // ========== Render ==========
@@ -281,16 +280,6 @@ public class AltarStarlightRenderer {
         GlStateManager.enableLighting();
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
-    }
-
-    private static String altarLabel(int ordinal) {
-        switch (ordinal) {
-            case 0: return "星辉合成台";
-            case 1: return "星辉祭坛";
-            case 2: return "天辉祭坛";
-            case 3: return "五彩祭坛";
-            default: return "祭坛";
-        }
     }
 
     private static int altarColor(int ordinal) {

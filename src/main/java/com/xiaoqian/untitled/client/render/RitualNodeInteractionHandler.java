@@ -1,6 +1,7 @@
 package com.xiaoqian.untitled.client.render;
 
 import com.xiaoqian.untitled.items.ItemStarlightBinder;
+import com.xiaoqian.untitled.util.LocalizationUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -50,15 +51,11 @@ public class RitualNodeInteractionHandler {
 
             if (anchorPos != null) {
                 player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[基座] " + TextFormatting.AQUA
-                    + "仪式锚坐标: "
-                    + TextFormatting.WHITE + "X:" + anchorPos.getX()
-                    + " Y:" + anchorPos.getY()
-                    + " Z:" + anchorPos.getZ()));
+                    TextFormatting.GRAY + LocalizationUtil.getAnchorLinked(
+                        anchorPos.getX(), anchorPos.getY(), anchorPos.getZ())));
             } else {
                 player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[基座] " + TextFormatting.YELLOW
-                    + "未链接仪式锚"));
+                    TextFormatting.GRAY + LocalizationUtil.getAnchorNotLinked()));
             }
             event.setCanceled(true);
             return;
@@ -101,13 +98,10 @@ public class RitualNodeInteractionHandler {
 
             if (count > 0) {
                 player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已连接: "
-                    + TextFormatting.AQUA + count + "/" + max
-                    + TextFormatting.GREEN + " | 范围: " + TextFormatting.AQUA + range + " 格"));
+                    TextFormatting.GRAY + LocalizationUtil.getBinderConnected(count, max, range)));
             } else {
                 player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "暂无连接"
-                    + TextFormatting.GRAY + " | 上限: " + max + " | 范围: " + range + " 格"));
+                    TextFormatting.GRAY + LocalizationUtil.getBinderNoConnection(max, range)));
             }
             return true; // Cancel: info already shown, prevent onItemUse duplicate
         } else {
@@ -119,8 +113,7 @@ public class RitualNodeInteractionHandler {
                 List<BlockPos> anchorBindings = BinderBindingHandler.getServerBindings().get(anchorPos);
                 if (anchorBindings != null && !anchorBindings.isEmpty()) {
                     player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED
-                        + "对应仪式锚已有绑定，无法在此绑定"));
+                        TextFormatting.GRAY + LocalizationUtil.getBinderAnchorHasBinding()));
                     return true; // Cancel: block the bind
                 }
             }
@@ -148,8 +141,7 @@ public class RitualNodeInteractionHandler {
                 List<BlockPos> pedestalBindings = BinderBindingHandler.getServerBindings().get(pedestalPos);
                 if (pedestalBindings != null && !pedestalBindings.isEmpty()) {
                     player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED
-                        + "对应仪式基座已有绑定，无法在此绑定"));
+                        TextFormatting.GRAY + LocalizationUtil.getBinderPedestalHasBinding()));
                     return true; // Cancel: block the bind
                 }
             }
