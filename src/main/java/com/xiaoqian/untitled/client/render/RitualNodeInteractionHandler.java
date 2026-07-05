@@ -1,7 +1,6 @@
 package com.xiaoqian.untitled.client.render;
 
 import com.xiaoqian.untitled.items.ItemStarlightBinder;
-import com.xiaoqian.untitled.util.LocalizationUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -10,10 +9,7 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -23,8 +19,6 @@ import java.util.List;
  * Handles right-click interactions on ritual pedestals and anchors.
  * Separated from BinderBindingHandler for clarity.
  */
-@SideOnly(Side.CLIENT)
-@Mod.EventBusSubscriber(Side.CLIENT)
 public class RitualNodeInteractionHandler {
 
     @SubscribeEvent
@@ -51,11 +45,15 @@ public class RitualNodeInteractionHandler {
 
             if (anchorPos != null) {
                 player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + LocalizationUtil.getAnchorLinked(
-                        anchorPos.getX(), anchorPos.getY(), anchorPos.getZ())));
+                    TextFormatting.GRAY + "[基座] " + TextFormatting.AQUA
+                    + "仪式锚坐标: "
+                    + TextFormatting.WHITE + "X:" + anchorPos.getX()
+                    + " Y:" + anchorPos.getY()
+                    + " Z:" + anchorPos.getZ()));
             } else {
                 player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + LocalizationUtil.getAnchorNotLinked()));
+                    TextFormatting.GRAY + "[基座] " + TextFormatting.YELLOW
+                    + "未链接仪式锚"));
             }
             event.setCanceled(true);
             return;
@@ -98,10 +96,13 @@ public class RitualNodeInteractionHandler {
 
             if (count > 0) {
                 player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + LocalizationUtil.getBinderConnected(count, max, range)));
+                    TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已连接: "
+                    + TextFormatting.AQUA + count + "/" + max
+                    + TextFormatting.GREEN + " | 范围: " + TextFormatting.AQUA + range + " 格"));
             } else {
                 player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + LocalizationUtil.getBinderNoConnection(max, range)));
+                    TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "暂无连接"
+                    + TextFormatting.GRAY + " | 上限: " + max + " | 范围: " + range + " 格"));
             }
             return true; // Cancel: info already shown, prevent onItemUse duplicate
         } else {
@@ -113,7 +114,8 @@ public class RitualNodeInteractionHandler {
                 List<BlockPos> anchorBindings = BinderBindingHandler.getServerBindings().get(anchorPos);
                 if (anchorBindings != null && !anchorBindings.isEmpty()) {
                     player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + LocalizationUtil.getBinderAnchorHasBinding()));
+                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED
+                        + "对应仪式锚已有绑定，无法在此绑定"));
                     return true; // Cancel: block the bind
                 }
             }
@@ -141,7 +143,8 @@ public class RitualNodeInteractionHandler {
                 List<BlockPos> pedestalBindings = BinderBindingHandler.getServerBindings().get(pedestalPos);
                 if (pedestalBindings != null && !pedestalBindings.isEmpty()) {
                     player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + LocalizationUtil.getBinderPedestalHasBinding()));
+                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED
+                        + "对应仪式基座已有绑定，无法在此绑定"));
                     return true; // Cancel: block the bind
                 }
             }

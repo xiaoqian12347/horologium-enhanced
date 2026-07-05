@@ -1,18 +1,14 @@
 package com.xiaoqian.untitled.client.render;
 
 import com.xiaoqian.untitled.items.ItemStarlightBinder;
-import com.xiaoqian.untitled.util.LocalizationUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.MouseEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-@Mod.EventBusSubscriber(Side.CLIENT)
 public class BinderScrollHandler {
 
     @SubscribeEvent
@@ -49,11 +45,11 @@ public class BinderScrollHandler {
         // Show mode change message
         String modeName;
         if (newMode == ItemStarlightBinder.MODE_BIND) {
-            modeName = LocalizationUtil.getBinderBindMode();
+            modeName = "\u00a7a绑定模式";
         } else {
-            modeName = LocalizationUtil.getBinderUnbindMode();
+            modeName = "\u00a7c解绑模式";
         }
         mc.player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                TextFormatting.GRAY + modeName));
+                "\u00a77[Binder] " + modeName));
     }
 }

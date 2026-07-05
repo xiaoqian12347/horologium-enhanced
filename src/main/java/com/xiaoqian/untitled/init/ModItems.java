@@ -11,8 +11,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.Objects;
-
 @Mod.EventBusSubscriber(modid = Untitled.MODID)
 public class ModItems {
 
@@ -34,7 +32,7 @@ public class ModItems {
         net.minecraftforge.client.model.ModelLoader.setCustomModelResourceLocation(
                 item, 0,
                 new net.minecraft.client.renderer.block.model.ModelResourceLocation(
-                        Objects.requireNonNull(item.getRegistryName()), "inventory")
+                        item.getRegistryName(), "inventory")
         );
     }
 }

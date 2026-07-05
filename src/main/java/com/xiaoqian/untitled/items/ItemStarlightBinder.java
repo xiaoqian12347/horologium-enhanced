@@ -2,7 +2,6 @@ package com.xiaoqian.untitled.items;
 
 import com.xiaoqian.untitled.Untitled;
 import com.xiaoqian.untitled.client.render.BinderBindingHandler;
-import com.xiaoqian.untitled.util.LocalizationUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -58,7 +57,7 @@ public class ItemStarlightBinder extends ModItemBase {
             if (!world.isRemote) {
                 clearTargets(stack);
                 player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + LocalizationUtil.getBinderCleared()));
+                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已清空所有选择"));
             }
             return new ActionResult<>(EnumActionResult.SUCCESS, stack);
         }
@@ -84,10 +83,13 @@ public class ItemStarlightBinder extends ModItemBase {
                 int range = BinderBindingHandler.getEffectiveRangeForNode(world, pos);
                 if (count > 0) {
                     player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + LocalizationUtil.getBinderConnected(count, max, range)));
+                            TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已连接: "
+                            + TextFormatting.AQUA + count + "/" + max
+                            + TextFormatting.GREEN + " | 范围: " + TextFormatting.AQUA + range + " 格"));
                 } else {
                     player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + LocalizationUtil.getBinderNoConnection(max, range)));
+                            TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "暂无连接"
+                            + TextFormatting.GRAY + " | 上限: " + max + " | 范围: " + range + " 格"));
                 }
                 return EnumActionResult.SUCCESS;
             }
@@ -111,10 +113,10 @@ public class ItemStarlightBinder extends ModItemBase {
                 if (BinderBindingHandler.getServerBindings().containsKey(pos)) {
                     BinderBindingHandler.unbindNode(pos);
                     player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + LocalizationUtil.getBinderUnboundNode()));
+                            TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已解绑节点"));
                 } else {
                     player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + LocalizationUtil.getBinderNoMachineSelected()));
+                            TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "未选择机器"));
                 }
                 return EnumActionResult.SUCCESS;
             }
@@ -122,12 +124,15 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
             int boundCount = targets.size() - outOfRange.size();
             if (boundCount > 0) {
                 player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + LocalizationUtil.getBinderBoundMachines(boundCount)));
+                        TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已绑定 "
+                        + TextFormatting.AQUA + boundCount
+                        + TextFormatting.GREEN + " 台机器"));
             }
             if (!outOfRange.isEmpty()) {
                 player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + LocalizationUtil.getBinderOutOfRange(outOfRange.size(),
-                                BinderBindingHandler.getEffectiveRangeForNode(world, pos))));
+                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED
+                        + outOfRange.size() + " 台机器超出范围 (最大 "
+                        + BinderBindingHandler.getEffectiveRangeForNode(world, pos) + " blocks)"));
             }
             clearTargets(stack);
             return EnumActionResult.SUCCESS;
@@ -138,14 +143,16 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
             for (BlockPos t : targets) {
                 if (t.equals(pos)) {
                     player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + LocalizationUtil.getBinderAlreadyInList()));
+                            TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "已在列表中"));
                     return EnumActionResult.SUCCESS;
                 }
             }
             addTarget(stack, pos);
             player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + LocalizationUtil.getBinderSelected(targets.size(),
-                            pos.getX(), pos.getY(), pos.getZ())));
+                    TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已选择 ["
+                    + TextFormatting.AQUA + targets.size()
+                    + TextFormatting.GREEN + "] ("
+                    + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")"));
             return EnumActionResult.SUCCESS;
         }
 
@@ -158,7 +165,7 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
             boolean removed = BinderBindingHandler.unbindNode(pos);
             if (removed) {
                 player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + LocalizationUtil.getBinderUnboundNode()));
+                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已解绑节点"));
             } else {
                 // Try resolving ritual link to pedestal
                 String cn = te.getClass().getName();
@@ -173,10 +180,10 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
                 }
                 if (removed) {
                     player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + LocalizationUtil.getBinderUnboundNode()));
+                            TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已解绑关联节点"));
                 } else {
                     player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + LocalizationUtil.getBinderNotBound()));
+                            TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "该节点未绑定"));
                 }
             }
             return EnumActionResult.SUCCESS;
@@ -194,18 +201,18 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
                     Untitled.logger.info("[Binder] Removed machine {} from node {}, remaining: {}",
                             pos, entry.getKey(), machines.size());
                     player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + LocalizationUtil.getBinderMachineRemoved()));
+                            TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已移除机器"));
                     if (machines.isEmpty()) {
                         BinderBindingHandler.unbindNode(entry.getKey());
                         Untitled.logger.info("[Binder] Node {} unbound (no machines left)", entry.getKey());
                         player.sendMessage(new TextComponentString(
-                                TextFormatting.GRAY + LocalizationUtil.getBinderNodeUnbound()));
+                                TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "节点已解绑"));
                     }
                     return EnumActionResult.SUCCESS;
                 }
             }
             player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + LocalizationUtil.getBinderNotBound()));
+                    TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "该机器未绑定"));
             return EnumActionResult.SUCCESS;
         }
 
@@ -255,11 +262,11 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         int mode = getMode(stack);
         if (mode == MODE_BIND) {
-            tooltip.add(TextFormatting.GREEN + LocalizationUtil.getBinderBindMode());
+            tooltip.add(TextFormatting.GREEN + "绑定模式");
         } else {
-            tooltip.add(TextFormatting.RED + LocalizationUtil.getBinderUnbindMode());
+            tooltip.add(TextFormatting.RED + "解绑模式");
         }
-        tooltip.add(TextFormatting.GRAY + LocalizationUtil.getBinderScrollHint());
-        tooltip.add(TextFormatting.GRAY + LocalizationUtil.getBinderRightClickHint());
+        tooltip.add(TextFormatting.GRAY + "Shift+滚轮: 切换模式");
+        tooltip.add(TextFormatting.GRAY + "Shift+右键: 操作");
     }
 }
