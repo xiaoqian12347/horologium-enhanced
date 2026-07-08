@@ -1,4 +1,4 @@
-package com.xiaoqian.untitled.client.render;
+package com.xiaoqian.untitled.common.binding;
 
 import com.xiaoqian.untitled.Untitled;
 import net.minecraft.tileentity.TileEntity;
@@ -6,10 +6,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -32,14 +28,14 @@ public class BinderBindingHandler {
     private static final Map<BlockPos, BlockPos> PEDestalCache = new ConcurrentHashMap<>();
     private static final Set<BlockPos> CLIENT_HIGHLIGHTS = ConcurrentHashMap.newKeySet();
 
-/** Bind machines to node. Returns list of machines that are out of range. */
+/** 绑定机器，返回超距列表。 */
     public static List<BlockPos> bindMachinesToNode(World world, BlockPos ritualNode, List<BlockPos> machines) {
         List<BlockPos> outOfRange = new ArrayList<>();
-        // Resolve to pedestal and read its actual CE range
+        // 读取实际范围
         TileEntity nodeTE = world.getTileEntity(ritualNode);
         TileEntity pedestal = (nodeTE != null) ? resolveToPedestal(nodeTE) : null;
         int range = (pedestal != null) ? getPedestalRange(pedestal) : getHorologiumRange();
-        // Center is always the ritual node (anchor/link), not the pedestal
+        // 中心用仪式节点
         BlockPos center = ritualNode;
         Untitled.logger.info("[Binder] Binding range={}, center={}", range, center);
 
@@ -47,7 +43,7 @@ public class BinderBindingHandler {
         List<BlockPos> existing = BINDINGS.getOrDefault(ritualNode, new CopyOnWriteArrayList<>());
         for (BlockPos m : machines) {
             if (existing.contains(m)) continue;
-            // If machine is already bound to another node, remove from old binding (����)
+            // 覆盖旧绑定
             removeMachineFromOtherNodes(m, ritualNode);
             if (existing.size() >= maxCount) {
                 outOfRange.add(m);
@@ -74,7 +70,7 @@ public class BinderBindingHandler {
     }
 
 
-    /** Get Horologium search range from AS config (static fallback) */
+    /** 时钟座范围。 */
     public static int getHorologiumRange() {
         try {
             Class<?> ceClass = Class.forName("hellfirepvp.astralsorcery.common.constellation.effect.aoe.CEffectHorologium");
@@ -82,11 +78,11 @@ public class BinderBindingHandler {
             rangeField.setAccessible(true);
             return rangeField.getInt(null);
         } catch (Exception e) {
-            return 16; // default
+            return 16; // 默认值
         }
     }
 
-    /** Get max binding count from AS config (horologiumCount) */
+    /** 最大绑定数。 */
     public static int getMaxBindingCount() {
         try {
             Class<?> ceClass = Class.forName("hellfirepvp.astralsorcery.common.constellation.effect.aoe.CEffectHorologium");
@@ -94,11 +90,11 @@ public class BinderBindingHandler {
             countField.setAccessible(true);
             return countField.getInt(null);
         } catch (Exception e) {
-            return 30; // default
+            return 30; // 默认值
         }
     }
 
-    /** Get the effective range for a given ritual node (resolves to pedestal first) */
+    /** 节点有效范围。 */
     public static int getEffectiveRangeForNode(World world, BlockPos ritualNode) {
         TileEntity te = world.getTileEntity(ritualNode);
         if (te == null) { Untitled.logger.warn("[Binder] getEffectiveRangeForNode: TE null at {}", ritualNode); return getHorologiumRange(); }
@@ -107,7 +103,7 @@ public class BinderBindingHandler {
         return range;
     }
 
-    /** Read the actual effective range from a pedestal's CE + crystal properties + minor constellation */
+    /** 基座实际范围。 */
     private static int getPedestalRange(TileEntity pedestal) {
         try {
             Method getCache = findMethod(pedestal.getClass(), "getUpdateCache");
@@ -115,14 +111,14 @@ public class BinderBindingHandler {
             Object receiver = getCache.invoke(pedestal);
             if (receiver == null) return getHorologiumRange();
 
-            // Get CE
+            // CE
             Field ceField = findField(receiver.getClass(), "ce");
             if (ceField == null) return getHorologiumRange();
             ceField.setAccessible(true);
             Object ce = ceField.get(receiver);
             if (ce == null) return getHorologiumRange();
 
-            // Get crystal properties from receiver
+            // 水晶属性
             Field propsField = findField(receiver.getClass(), "properties");
             int collective = 100;
             if (propsField != null) {
@@ -136,7 +132,7 @@ public class BinderBindingHandler {
                 }
             }
 
-            // Get minor constellation (trait) from receiver
+            // 小星座
             Field traitField = findField(receiver.getClass(), "trait");
             Object minorConstellation = null;
             if (traitField != null) {
@@ -144,7 +140,7 @@ public class BinderBindingHandler {
                 minorConstellation = traitField.get(receiver);
             }
 
-            // Call provideProperties(collective) to get base properties
+            // 基础属性
             Method provideProps = null;
             try {
                 provideProps = ce.getClass().getMethod("provideProperties", int.class);
@@ -155,9 +151,9 @@ public class BinderBindingHandler {
                 provideProps.setAccessible(true);
                 Object effectProps = provideProps.invoke(ce, collective);
                 if (effectProps != null) {
-                    // Apply minor constellation modifier (ulteria: size*=0.2, gelu: size*=3.5, etc.)
+                    // 小星座修正
                     if (minorConstellation != null) {
-                        // modify(IMinorConstellation) requires explicit parameter type
+                        // 明确参数类型
                         Method modify = null;
                         for (Class<?> iface : minorConstellation.getClass().getInterfaces()) {
                             try {
@@ -185,7 +181,7 @@ public class BinderBindingHandler {
                 }
             }
 
-            // Fallback: read static searchRange
+            // 兜底范围
             Field rangeField = findField(ce.getClass(), "searchRange");
             if (rangeField != null) {
                 rangeField.setAccessible(true);
@@ -198,14 +194,14 @@ public class BinderBindingHandler {
     }
 
     public static boolean unbindNode(BlockPos n) {
-        // Clear frozen state for machines bound to this node
+        // 清理冻结
         List<BlockPos> machines = BINDINGS.get(n);
         if (machines != null) {
             net.minecraft.server.MinecraftServer server = net.minecraftforge.fml.common.FMLCommonHandler.instance().getMinecraftServerInstance();
             for (BlockPos m : machines) {
                 FROZEN_NBT.remove(m);
                 ALCARA_BINDINGS.remove(m);
-                // Restore to tickableTileEntities if frozen
+                // 恢复 tick
                 if (server != null) {
                     for (net.minecraft.world.World w : server.worlds) {
                         net.minecraft.tileentity.TileEntity mte = w.getTileEntity(m);
@@ -218,9 +214,9 @@ public class BinderBindingHandler {
         }
         boolean removed = BINDINGS.remove(n) != null;
 if (removed) {
-            // Clear CE cache for this node so AS stops accelerating
+            // 清理 CE
             clearCECacheForNode(n);
-            // Save to world data
+            // 保存
             try {
                 net.minecraft.server.MinecraftServer server =
                         net.minecraftforge.fml.common.FMLCommonHandler.instance().getMinecraftServerInstance();
@@ -232,7 +228,7 @@ if (removed) {
         return removed;
     }
 
-    /** Clear the CE elements cache for a specific ritual node */
+    /** 清理节点 CE。 */
     private static void clearCECacheForNode(BlockPos ritualPos) {
         try {
             net.minecraft.server.MinecraftServer server =
@@ -251,7 +247,7 @@ break;
         }
     }
 
-/** Clear the CE elements cache and null the CE so AS recreates a fresh one */
+/** 重建 CE。 */
     private static void clearCECache(TileEntity pedestal) {
         try {
             Method getCache = findMethod(pedestal.getClass(), "getUpdateCache");
@@ -259,7 +255,7 @@ break;
             Object receiver = getCache.invoke(pedestal);
             if (receiver == null) return;
 
-            // Clear the CE elements cache
+            // 清空元素
             Field ceField = findField(receiver.getClass(), "ce");
             if (ceField != null) {
                 ceField.setAccessible(true);
@@ -273,17 +269,17 @@ break;
                         elements.clear();
                     }
                 }
-                // Re-enable CE in case it was disabled by alcara
+                // 重新启用
                 Field enabledField = findField(ce.getClass(), "enabled");
                 if (enabledField != null) { enabledField.setAccessible(true); enabledField.setBoolean(ce, true); }
-                // Set ce to null so AS recreates a fresh CE with original verifier
+                // 强制重建
                 ceField.set(receiver, null);
 
             }
         } catch (Exception ignored) {}
     }
 
-    /** Remove a machine from any other node it is currently bound to (overwrite behavior) */
+    /** 覆盖旧节点。 */
     private static void removeMachineFromOtherNodes(BlockPos machine, BlockPos keepNode) {
         Iterator<Map.Entry<BlockPos, List<BlockPos>>> it = BINDINGS.entrySet().iterator();
         while (it.hasNext()) {
@@ -302,7 +298,7 @@ break;
             }
         }
     }
-    /** Clean up frozen state when a single machine is removed from binding */
+    /** 清理单机冻结。 */
     public static void onMachineRemoved(BlockPos machinePos) {
         FROZEN_NBT.remove(machinePos);
         ALCARA_BINDINGS.remove(machinePos);
@@ -319,7 +315,7 @@ break;
 
     public static Map<BlockPos, List<BlockPos>> getServerBindings() { return BINDINGS; }
 
-    /** Trigger save from external code (e.g. handleUnbind) */
+    /** 外部保存入口。 */
     public static void triggerSave(World world) { saveBindings(world); }
 
     private static void saveBindings(net.minecraft.world.World world) {
@@ -332,7 +328,7 @@ break;
         }
     }
 
-    /** Load bindings from saved data */
+    /** 读取存档绑定。 */
     public static void loadServerBindings(Map<BlockPos, List<BlockPos>> data) {
         BINDINGS.clear();
         for (Map.Entry<BlockPos, List<BlockPos>> e : data.entrySet()) { BINDINGS.put(e.getKey(), new CopyOnWriteArrayList<>(e.getValue())); }
@@ -346,14 +342,14 @@ break;
         CLIENT_HIGHLIGHTS.clear(); CLIENT_HIGHLIGHTS.addAll(m);
     }
 
-    // Clear bindings when a block is broken
+    // 破坏清理
     @SubscribeEvent
     public static void onBlockBreak(net.minecraftforge.event.world.BlockEvent.BreakEvent event) {
         if (event.getWorld().isRemote) return;
         BlockPos pos = event.getPos();
         boolean changed = false;
 
-        // If a ritual node is broken, remove its binding
+        // 节点破坏
         if (BINDINGS.containsKey(pos)) {
             clearCECacheForNode(pos);
             BINDINGS.remove(pos);
@@ -361,7 +357,7 @@ break;
             Untitled.logger.info("[Binder] Node {} broken, binding removed", pos);
         }
 
-        // If a bound machine is broken, remove it from the binding
+        // 机器破坏
         if (!changed) {
             for (Map.Entry<BlockPos, List<BlockPos>> entry : BINDINGS.entrySet()) {
                 List<BlockPos> machines = entry.getValue();
@@ -385,15 +381,14 @@ break;
 
         @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
-        // Inject at START: before world tick so AS uses our positions
-        // Inject at END: after world tick to repopulate for next tick
+        // 双阶段注入
         if (event.phase != TickEvent.Phase.START && event.phase != TickEvent.Phase.END) return;
 
         net.minecraft.server.MinecraftServer server =
                 net.minecraftforge.fml.common.FMLCommonHandler.instance().getMinecraftServerInstance();
         if (server == null) return;
 
-        // Reset state if server was restarted
+        // 状态重置
         if (!server.isServerRunning()) {
             if (tickCount > 0) {
                 tickCount = 0;
@@ -408,7 +403,7 @@ break;
 
         tickCount++;
 
-        // Load bindings from world data on first tick
+        // 首 tick 加载
         if (tickCount == 1) {
             try {
                 net.minecraft.server.MinecraftServer server2 =
@@ -440,7 +435,7 @@ TileEntity pedestal = resolveToPedestal(te);
                     if (tickCount % 100 == 0) {
                         
                     }
-                    // Range validation every 20 ticks: disconnect out-of-range machines immediately
+                    // 范围校验
                     if (tickCount % 20 == 0) {
                         int range = getPedestalRange(pedestal);
                         boolean changed = false;
@@ -461,11 +456,11 @@ TileEntity pedestal = resolveToPedestal(te);
                                 Untitled.logger.info("[Binder] Node {} fully unbound", ritualPos);
                             }
                             saveBindings(world);
-                            if (BINDINGS.containsKey(ritualPos)) continue; // re-inject remaining
+                            if (BINDINGS.containsKey(ritualPos)) continue; // 注入剩余
                             break;
                         }
                     }
-                    // Alcara freeze: START=remove from tick list, END=add back
+                    // 振变冻结
                     if (event.phase == TickEvent.Phase.START) {
                         for (BlockPos m : machines) {
                             if (!ALCARA_BINDINGS.contains(m)) continue;
@@ -473,7 +468,7 @@ TileEntity pedestal = resolveToPedestal(te);
                             if (mte == null) continue;
                             if (mte instanceof net.minecraft.util.ITickable) {
                                 world.tickableTileEntities.remove(mte);
-                                FROZEN_NBT.put(m, new net.minecraft.nbt.NBTTagCompound()); // placeholder
+                                FROZEN_NBT.put(m, new net.minecraft.nbt.NBTTagCompound()); // 标记
                             }
                         }
                     } else { // END
@@ -493,8 +488,7 @@ TileEntity pedestal = resolveToPedestal(te);
             }
         }
 
-        // Safety restore: END phase always unfreezes any machines in FROZEN_NBT,
-        // even if their binding was removed during this tick's START phase
+        // 安全恢复
         if (event.phase == TickEvent.Phase.END && !FROZEN_NBT.isEmpty()) {
             for (java.util.Map.Entry<BlockPos, net.minecraft.nbt.NBTTagCompound> frozen
                     : new ArrayList<>(FROZEN_NBT.entrySet())) {
@@ -508,7 +502,7 @@ TileEntity pedestal = resolveToPedestal(te);
                 }
             }
             FROZEN_NBT.clear();
-            // Clean stale ALCARA_BINDINGS: remove entries no longer in any binding
+            // 清理过期振变绑定
             java.util.Set<BlockPos> allBound = new java.util.HashSet<>();
             for (List<BlockPos> ml : BINDINGS.values()) allBound.addAll(ml);
             ALCARA_BINDINGS.retainAll(allBound);
@@ -516,9 +510,7 @@ TileEntity pedestal = resolveToPedestal(te);
     }
 
     /**
-     * Inject bound machine positions into AS's CEffectHorologium.
-     * Normal path: fill elements cache + replace verifier.
-     * Alcara path: directly accelerate bound machines with effectAmplifier multiplier.
+     * 注入时钟座目标。
      */
     private static void injectPositionsIntoCE(TileEntity pedestal, List<BlockPos> boundMachines) {
         try {
@@ -541,7 +533,7 @@ TileEntity pedestal = resolveToPedestal(te);
                 return;
             }
 
-            // Check if alcara (corrupted) path
+            // 振变路径
             boolean alcara = false;
             int amplifier = 1;
             try {
@@ -578,22 +570,22 @@ TileEntity pedestal = resolveToPedestal(te);
                 }
             } catch (Exception ignored) {}
 
-            // Always clean stale ALCARA_BINDINGS: remove entries not in ANY binding
+            // 清理过期振变绑定
             java.util.Set<BlockPos> allBound = new java.util.HashSet<>();
             for (List<BlockPos> ml : BINDINGS.values()) allBound.addAll(ml);
             ALCARA_BINDINGS.retainAll(allBound);
 
             if (alcara) {
-                // Disable AS native Horologium effect to prevent TimeStopZone at pedestal
+                // 禁用原生效果
                 Field enabledField = findField(ce.getClass(), "enabled");
                 if (enabledField != null) { enabledField.setAccessible(true); enabledField.setBoolean(ce, false); }
-                // Mark as alcara binding; freeze logic handled in tick handler
+                // 标记冻结
                 ALCARA_BINDINGS.addAll(boundMachines);
                 if (tickCount % 200 == 0) Untitled.logger.info("[Binder] Alcara active, {} frozen machines", ALCARA_BINDINGS.size());
                 return;
             }
 
-            // Normal path: inject into elements cache
+            // 注入缓存
             Field elementsField = findField(ce.getClass(), "elements");
             if (elementsField == null) return;
             elementsField.setAccessible(true);
@@ -641,14 +633,14 @@ TileEntity pedestal = resolveToPedestal(te);
 
         BlockPos tePos = te.getPos();
 
-        // Check cache first
+        // 先查缓存
         BlockPos cachedPedestalPos = PEDestalCache.get(tePos);
         if (cachedPedestalPos != null) {
             TileEntity cached = te.getWorld().getTileEntity(cachedPedestalPos);
             if (cached != null && cached.getClass().getName().contains("TileRitualPedestal")) {
                 return cached;
             }
-            PEDestalCache.remove(tePos); // stale entry
+            PEDestalCache.remove(tePos); // 过期缓存
         }
         BlockPos linkedPos = null;
         try {
@@ -669,7 +661,7 @@ TileEntity pedestal = resolveToPedestal(te);
                 Object receiver = getCache.invoke(candidate);
                 if (receiver == null) continue;
 
-                // Dump offsetMirrors
+                // 检查 offsetMirrors
                 Field mirrorsField = findField(receiver.getClass(), "offsetMirrors");
                 if (mirrorsField != null) {
                     mirrorsField.setAccessible(true);
@@ -687,7 +679,7 @@ TileEntity pedestal = resolveToPedestal(te);
                     }
                 }
 
-                // Also check ritualLinkTo field
+                // 同时检查 ritualLinkTo 字段
                 Field linkToField = findField(receiver.getClass(), "ritualLinkTo");
                 if (linkToField != null) {
                     linkToField.setAccessible(true);

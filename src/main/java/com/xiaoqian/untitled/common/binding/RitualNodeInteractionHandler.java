@@ -1,12 +1,11 @@
-package com.xiaoqian.untitled.client.render;
+package com.xiaoqian.untitled.common.binding;
 
 import com.xiaoqian.untitled.items.ItemStarlightBinder;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -16,10 +15,17 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 /**
- * Handles right-click interactions on ritual pedestals and anchors.
- * Separated from BinderBindingHandler for clarity.
+ * 仪式节点交互。
  */
 public class RitualNodeInteractionHandler {
+
+    private static TextComponentTranslation binderTr(String key, Object... args) {
+        return new TextComponentTranslation("message.horologium_positioning.binder." + key, args);
+    }
+
+    private static TextComponentTranslation pedestalTr(String key, Object... args) {
+        return new TextComponentTranslation("message.horologium_positioning.pedestal." + key, args);
+    }
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
@@ -39,27 +45,20 @@ public class RitualNodeInteractionHandler {
         BlockPos pos = event.getPos();
         World world = event.getWorld();
 
-        // Empty hand + non-sneaking + pedestal: show linked anchor coords
+        // 显示锚点坐标
         if (held.isEmpty() && isPedestal && !player.isSneaking()) {
             BlockPos anchorPos = resolveAnchorPos(te);
 
             if (anchorPos != null) {
-                player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[基座] " + TextFormatting.AQUA
-                    + "仪式锚坐标: "
-                    + TextFormatting.WHITE + "X:" + anchorPos.getX()
-                    + " Y:" + anchorPos.getY()
-                    + " Z:" + anchorPos.getZ()));
+                player.sendMessage(pedestalTr("anchor_pos",
+                        anchorPos.getX(), anchorPos.getY(), anchorPos.getZ()));
             } else {
-                player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[基座] " + TextFormatting.YELLOW
-                    + "未链接仪式锚"));
+                player.sendMessage(pedestalTr("no_anchor"));
             }
             event.setCanceled(true);
             return;
         }
 
-        // Wand logic below
         if (held.isEmpty() || !(held.getItem() instanceof ItemStarlightBinder)) return;
 
         boolean cancel = false;
@@ -73,15 +72,12 @@ public class RitualNodeInteractionHandler {
         }
     }
 
-    /**
-     * Handle wand right-click on pedestal.
-     * @return true to cancel the event (block further processing), false to let it pass through.
-     */
+    /** 处理基座右键。 */
     private static boolean handlePedestalWand(EntityPlayer player, World world, BlockPos pos, TileEntity te) {
         BlockPos anchorPos = resolveAnchorPos(te);
 
         if (!player.isSneaking()) {
-            // Show binding info: use anchor pos only when anchor has bindings
+            // 锚点优先
             BlockPos lookupPos = pos;
             if (anchorPos != null) {
                 List<BlockPos> anchorBindings = BinderBindingHandler.getServerBindings().get(anchorPos);
@@ -95,44 +91,33 @@ public class RitualNodeInteractionHandler {
             int range = BinderBindingHandler.getEffectiveRangeForNode(world, pos);
 
             if (count > 0) {
-                player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已连接: "
-                    + TextFormatting.AQUA + count + "/" + max
-                    + TextFormatting.GREEN + " | 范围: " + TextFormatting.AQUA + range + " 格"));
+                player.sendMessage(binderTr("connected", count, max, range));
             } else {
-                player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "暂无连接"
-                    + TextFormatting.GRAY + " | 上限: " + max + " | 范围: " + range + " 格"));
+                player.sendMessage(binderTr("no_connection", max, range));
             }
-            return true; // Cancel: info already shown, prevent onItemUse duplicate
+            return true; // 避免重复提示
         } else {
-            // Sneaking + bind mode: block if anchor already has bindings
+            // 锚点互斥
             ItemStack held = player.getHeldItemMainhand();
             int mode = ItemStarlightBinder.getMode(held);
 
             if (mode == ItemStarlightBinder.MODE_BIND && anchorPos != null) {
                 List<BlockPos> anchorBindings = BinderBindingHandler.getServerBindings().get(anchorPos);
                 if (anchorBindings != null && !anchorBindings.isEmpty()) {
-                    player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED
-                        + "对应仪式锚已有绑定，无法在此绑定"));
-                    return true; // Cancel: block the bind
+                    player.sendMessage(binderTr("anchor_already_bound"));
+                    return true; // 阻止绑定
                 }
             }
-            // Unbind mode or no mutual exclusion: let AS handle crystal removal, let onItemUse handle unbind
+            // 交给 AS/onItemUse
             return false;
         }
     }
 
-    /**
-     * Handle wand right-click on anchor.
-     * @return true to cancel the event (block further processing), false to let it pass through.
-     */
+    /** 处理锚点右键。 */
     private static boolean handleAnchorWand(EntityPlayer player, TileEntity te) {
-        // Non-sneaking: don't handle here, let onItemUse show info
         if (!player.isSneaking()) return false;
 
-        // Sneaking + bind mode: block if pedestal already has bindings
+        // 基座互斥
         ItemStack held = player.getHeldItemMainhand();
         int mode = ItemStarlightBinder.getMode(held);
 
@@ -142,23 +127,17 @@ public class RitualNodeInteractionHandler {
                 BlockPos pedestalPos = pedestalTE.getPos();
                 List<BlockPos> pedestalBindings = BinderBindingHandler.getServerBindings().get(pedestalPos);
                 if (pedestalBindings != null && !pedestalBindings.isEmpty()) {
-                    player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED
-                        + "对应仪式基座已有绑定，无法在此绑定"));
-                    return true; // Cancel: block the bind
+                    player.sendMessage(binderTr("pedestal_already_bound"));
+                    return true; // 阻止绑定
                 }
             }
         }
-        // Unbind mode or no mutual exclusion: let onItemUse handle it
         return false;
     }
 
-    // ========== Utility: resolve pedestal -> linked anchor position ==========
+    // 基座转锚点
 
-    /**
-     * Resolves a ritual pedestal's linked anchor position via reflection.
-     * Returns null if the pedestal has no linked anchor.
-     */
+    /** 读取链接锚点。 */
     public static BlockPos resolveAnchorPos(TileEntity te) {
         try {
             Method getCache = findMethod(te.getClass(), "getUpdateCache");

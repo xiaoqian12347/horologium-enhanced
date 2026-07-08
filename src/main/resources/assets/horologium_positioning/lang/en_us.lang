@@ -1,7 +1,44 @@
 item.starlight_binder.name=Ritual Adjuster
-# Display Config
+# 显示配置
 horologium_positioning.config.show_altar=Show Altar Starlight
 horologium_positioning.config.show_pedestal=Show Ritual Pedestal
 horologium_positioning.config.show_tree_beacon=Show Tree Beacon
 horologium_positioning.config.show_bore=Show Infinity Fountain
 horologium_positioning.config.show_attunement_altar=Show Attunement Altar
+
+# 物品提示
+tooltip.horologium_positioning.binder.mode_bind=Bind Mode
+tooltip.horologium_positioning.binder.mode_unbind=Unbind Mode
+tooltip.horologium_positioning.binder.switch_mode=Shift+Scroll: Switch Mode
+tooltip.horologium_positioning.binder.use=Shift+Right Click: Use
+
+# 玩家提示
+message.horologium_positioning.binder.cleared=§7[Binder] §cCleared all selections
+message.horologium_positioning.binder.connected=§7[Binder] §aConnected: §b%s/%s§a | Range: §b%s blocks
+message.horologium_positioning.binder.no_connection=§7[Binder] §eNo connections§7 | Limit: %s | Range: %s blocks
+message.horologium_positioning.binder.node_unbound=§7[Binder] §cNode unbound
+message.horologium_positioning.binder.linked_node_unbound=§7[Binder] §cLinked node unbound
+message.horologium_positioning.binder.no_machine_selected=§7[Binder] §eNo machines selected
+message.horologium_positioning.binder.bound_machines=§7[Binder] §aBound §b%s§a machines
+message.horologium_positioning.binder.out_of_range=§7[Binder] §c%s machines are out of range (max %s blocks)
+message.horologium_positioning.binder.already_selected=§7[Binder] §eAlready selected
+message.horologium_positioning.binder.selected=§7[Binder] §aSelected [§b%s§a] (%s, %s, %s)
+message.horologium_positioning.binder.node_not_bound=§7[Binder] §eThis node is not bound
+message.horologium_positioning.binder.machine_removed=§7[Binder] §cMachine removed
+message.horologium_positioning.binder.machine_not_bound=§7[Binder] §eThis machine is not bound
+message.horologium_positioning.binder.anchor_already_bound=§7[Binder] §cThe linked ritual anchor is already bound
+message.horologium_positioning.binder.pedestal_already_bound=§7[Binder] §cThe linked ritual pedestal is already bound
+message.horologium_positioning.binder.mode_changed=§7[Binder] %s
+message.horologium_positioning.pedestal.anchor_pos=§7[Pedestal] §bRitual Anchor: §fX:%s Y:%s Z:%s
+message.horologium_positioning.pedestal.no_anchor=§7[Pedestal] §eNo ritual anchor linked
+
+# 悬浮显示
+overlay.horologium_positioning.ritual_pedestal=Ritual Pedestal
+overlay.horologium_positioning.tree_beacon=Tree Beacon
+overlay.horologium_positioning.bore=Infinity Fountain
+overlay.horologium_positioning.attunement_altar=Attunement Altar
+overlay.horologium_positioning.altar.discovery=Luminous Crafting Table
+overlay.horologium_positioning.altar.attunement=Starlight Crafting Altar
+overlay.horologium_positioning.altar.celestial=Celestial Altar
+overlay.horologium_positioning.altar.iridescent=Iridescent Altar
+overlay.horologium_positioning.altar.default=Altar

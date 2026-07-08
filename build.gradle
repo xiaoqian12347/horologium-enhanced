@@ -24,7 +24,7 @@ repositories.each {
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.03'
+version = '1.1'
 group = 'com.xiaoqian'
 archivesBaseName = 'Horologium-Positioning'
 
@@ -63,8 +63,7 @@ dependencies {
     compile files(file('libs/[前置-饰品栏]Baubles-1.12-1.5.2.jar').getPath())
 }
 
-// Remove AS and Baubles jars from runClient classpath to prevent double-loading
-// They will be loaded by Forge from run/mods/ instead
+// 避免 runClient 重复加载 AS/Baubles
 gradle.projectsEvaluated {
     tasks.withType(JavaExec) {
         doFirst {

@@ -5,3 +5,40 @@ horologium_positioning.config.show_pedestal=显示仪式基座
 horologium_positioning.config.show_tree_beacon=显示树之信标
 horologium_positioning.config.show_bore=显示万象泉
 horologium_positioning.config.show_attunement_altar=显示共鸣祭坛
+
+# 物品提示
+tooltip.horologium_positioning.binder.mode_bind=绑定模式
+tooltip.horologium_positioning.binder.mode_unbind=解绑模式
+tooltip.horologium_positioning.binder.switch_mode=Shift+滚轮: 切换模式
+tooltip.horologium_positioning.binder.use=Shift+右键: 操作
+
+# 玩家提示
+message.horologium_positioning.binder.cleared=§7[Binder] §c已清空所有选择
+message.horologium_positioning.binder.connected=§7[Binder] §a已连接: §b%s/%s§a | 范围: §b%s 格
+message.horologium_positioning.binder.no_connection=§7[Binder] §e暂无连接§7 | 上限: %s | 范围: %s 格
+message.horologium_positioning.binder.node_unbound=§7[Binder] §c已解绑节点
+message.horologium_positioning.binder.linked_node_unbound=§7[Binder] §c已解绑关联节点
+message.horologium_positioning.binder.no_machine_selected=§7[Binder] §e未选择机器
+message.horologium_positioning.binder.bound_machines=§7[Binder] §a已绑定 §b%s§a 台机器
+message.horologium_positioning.binder.out_of_range=§7[Binder] §c%s 台机器超出范围 (最大 %s 格)
+message.horologium_positioning.binder.already_selected=§7[Binder] §e已在列表中
+message.horologium_positioning.binder.selected=§7[Binder] §a已选择 [§b%s§a] (%s, %s, %s)
+message.horologium_positioning.binder.node_not_bound=§7[Binder] §e该节点未绑定
+message.horologium_positioning.binder.machine_removed=§7[Binder] §c已移除机器
+message.horologium_positioning.binder.machine_not_bound=§7[Binder] §e该机器未绑定
+message.horologium_positioning.binder.anchor_already_bound=§7[Binder] §c对应仪式锚已有绑定，无法在此绑定
+message.horologium_positioning.binder.pedestal_already_bound=§7[Binder] §c对应仪式基座已有绑定，无法在此绑定
+message.horologium_positioning.binder.mode_changed=§7[Binder] %s
+message.horologium_positioning.pedestal.anchor_pos=§7[基座] §b仪式锚坐标: §fX:%s Y:%s Z:%s
+message.horologium_positioning.pedestal.no_anchor=§7[基座] §e未链接仪式锚
+
+# 悬浮显示
+overlay.horologium_positioning.ritual_pedestal=仪式基座
+overlay.horologium_positioning.tree_beacon=树木信标
+overlay.horologium_positioning.bore=万象泉
+overlay.horologium_positioning.attunement_altar=共鸣祭坛
+overlay.horologium_positioning.altar.discovery=星辉合成台
+overlay.horologium_positioning.altar.attunement=星辉祭坛
+overlay.horologium_positioning.altar.celestial=天辉祭坛
+overlay.horologium_positioning.altar.iridescent=五彩祭坛
+overlay.horologium_positioning.altar.default=祭坛

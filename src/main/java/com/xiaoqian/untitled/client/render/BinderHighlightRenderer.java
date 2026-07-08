@@ -1,5 +1,7 @@
 package com.xiaoqian.untitled.client.render;
 
+import com.xiaoqian.untitled.common.binding.BinderBindingHandler;
+import com.xiaoqian.untitled.common.binding.RitualNodeInteractionHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -13,7 +15,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 @SideOnly(Side.CLIENT)
-@Mod.EventBusSubscriber(value = Side.CLIENT)
 public class BinderHighlightRenderer {
 
     private static final String BINDER_CLASS = "starlight_binder";
@@ -38,7 +38,6 @@ public class BinderHighlightRenderer {
         ItemStack held = player.getHeldItemMainhand();
         if (held.isEmpty() || !held.getUnlocalizedName().contains(BINDER_CLASS)) return;
 
-        // Find which ritual node the player is looking at
         RayTraceResult ray = player.rayTrace(8.0, event.getPartialTicks());
         if (ray == null || ray.typeOfHit != RayTraceResult.Type.BLOCK) return;
 
@@ -49,14 +48,12 @@ public class BinderHighlightRenderer {
         String teName = lookTE.getClass().getName();
         boolean isRitualNode = teName.contains("TileRitualPedestal") || teName.contains("TileRitualLink");
 
-        // Get highlights: either from the looked-at node, or show all from client cache
         Set<BlockPos> highlights = BinderBindingHandler.getClientHighlights();
 
         if (isRitualNode) {
             Map<BlockPos, List<BlockPos>> bindings = BinderBindingHandler.getClientBindings();
             boolean isPedestal = teName.contains("TileRitualPedestal");
 
-            // Resolve lookup pos: pedestal -> anchor if anchor has bindings
             BlockPos lookupPos = lookPos;
             BlockPos anchorPos = isPedestal ? RitualNodeInteractionHandler.resolveAnchorPos(lookTE) : null;
             if (anchorPos != null) {
@@ -73,13 +70,11 @@ public class BinderHighlightRenderer {
                 highlights = java.util.Collections.emptySet();
             }
 
-            // Highlight the node itself
             float pt = event.getPartialTicks();
             double px = player.lastTickPosX + (player.posX - player.lastTickPosX) * pt;
             double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * pt;
             double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * pt;
             renderBlockOutline(lookPos, px, py, pz, 0.6f, 0.3f, 1.0f, 1.0f);
-            // If pedestal resolved to anchor, also highlight the anchor
             if (!lookupPos.equals(lookPos)) {
                 renderBlockOutline(lookupPos, px, py, pz, 0.6f, 0.3f, 1.0f, 1.0f);
             }
@@ -93,7 +88,7 @@ public class BinderHighlightRenderer {
         double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * pt;
 
         for (BlockPos target : highlights) {
-            if (target.distanceSq(lookPos) > 10000) continue; // skip far away
+            if (target.distanceSq(lookPos) > 10000) continue; // 距离过滤
             renderBlockOutline(target, px, py, pz, 1.0f, 0.85f, 0.0f, 0.9f);
         }
     }
@@ -116,7 +111,7 @@ public class BinderHighlightRenderer {
         BufferBuilder buf = tes.getBuffer();
         buf.begin(3, DefaultVertexFormats.POSITION_COLOR);
 
-        // Draw 12 edges of the box
+        // 12 条边
         drawEdge(buf, box.minX, box.minY, box.minZ, box.maxX, box.minY, box.minZ, r, g, b, a);
         drawEdge(buf, box.maxX, box.minY, box.minZ, box.maxX, box.minY, box.maxZ, r, g, b, a);
         drawEdge(buf, box.maxX, box.minY, box.maxZ, box.minX, box.minY, box.maxZ, r, g, b, a);

@@ -3,19 +3,18 @@ package com.xiaoqian.untitled.client.render;
 import hellfirepvp.astralsorcery.common.tile.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import java.util.List;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-@Mod.EventBusSubscriber(value = Side.CLIENT)
 public class AltarStarlightRenderer {
 
     private static final double RENDER_DISTANCE = 24.0;
@@ -29,15 +28,14 @@ public class AltarStarlightRenderer {
         World world = mc.world;
         if (player == null || world == null) return;
 
-        // Expire stale cache entries
-        StarlightNetHandler.tickCache();
+        StarlightClientData.tickCache();
 
         float pt = event.getPartialTicks();
         double px = player.lastTickPosX + (player.posX - player.lastTickPosX) * pt;
         double py = player.lastTickPosY + (player.posY - player.lastTickPosY) * pt;
         double pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * pt;
 
-        // Rebuild AS entity cache every 40 ticks (~2s)
+        // 刷新 AS 方块缓存
         if (++rebuildCounter >= 40) {
             rebuildCounter = 0;
             CACHED_AS_ENTITIES.clear();
@@ -72,19 +70,18 @@ public class AltarStarlightRenderer {
         BlockPos pos = altar.getPos();
         if (pos.distanceSq(px, py, pz) > RENDER_DISTANCE * RENDER_DISTANCE) return;
 
-        // Get focused constellation
         String focusedName = "";
         try {
             hellfirepvp.astralsorcery.common.constellation.IConstellation fc = altar.getFocusedConstellation();
             if (fc != null) {
-                focusedName = net.minecraft.client.resources.I18n.format(fc.getUnlocalizedName());
+                focusedName = I18n.format(fc.getUnlocalizedName());
             }
         } catch (Exception ignored) {}
 
         String info;
         int color;
 
-        StarlightNetHandler.CachedData cd = StarlightNetHandler.get(pos);
+        StarlightClientData.CachedData cd = StarlightClientData.get(pos);
         if (cd != null) {
             int stored = (int) cd.val1;
             int max = cd.val2;
@@ -113,7 +110,6 @@ public class AltarStarlightRenderer {
         String info;
         int color;
 
-        // Get constellation and trait names from tuned crystal
         String constellationName = "";
         String traitName = "";
         try {
@@ -123,16 +119,16 @@ public class AltarStarlightRenderer {
                         (hellfirepvp.astralsorcery.common.item.crystal.base.ItemTunedCrystalBase) crystal.getItem();
                 hellfirepvp.astralsorcery.common.constellation.IConstellation c = tuned.getFocusConstellation(crystal);
                 if (c != null) {
-                    constellationName = net.minecraft.client.resources.I18n.format(c.getUnlocalizedName());
+                    constellationName = I18n.format(c.getUnlocalizedName());
                 }
                 hellfirepvp.astralsorcery.common.constellation.IMinorConstellation trait = hellfirepvp.astralsorcery.common.item.crystal.base.ItemTunedCrystalBase.getTrait(crystal);
                 if (trait != null) {
-                    traitName = net.minecraft.client.resources.I18n.format(trait.getUnlocalizedName());
+                    traitName = I18n.format(trait.getUnlocalizedName());
                 }
             }
         } catch (Exception ignored) {}
 
-        StarlightNetHandler.CachedData cd = StarlightNetHandler.get(pos);
+        StarlightClientData.CachedData cd = StarlightClientData.get(pos);
         if (cd != null) {
             double buffer = cd.val1;
             int channeled = cd.val2;
@@ -155,7 +151,6 @@ public class AltarStarlightRenderer {
             color = 0x888888;
         }
 
-        // Append constellation + trait if present
         if (!constellationName.isEmpty()) {
             info = info + " §b" + constellationName;
             if (!traitName.isEmpty()) {
@@ -163,17 +158,18 @@ public class AltarStarlightRenderer {
             }
         }
 
-        renderFloatingText("仪式基座", info, color, pos, px, py, pz, mc);
+        renderFloatingText(I18n.format("overlay.horologium_positioning.ritual_pedestal"),
+                info, color, pos, px, py, pz, mc);
     }
 
     private static void renderTreeBeacon(TileTreeBeacon beacon, double px, double py, double pz, Minecraft mc) {
         BlockPos pos = beacon.getPos();
         if (pos.distanceSq(px, py, pz) > RENDER_DISTANCE * RENDER_DISTANCE) return;
 
-        StarlightNetHandler.CachedData cd = StarlightNetHandler.get(pos);
+        StarlightClientData.CachedData cd = StarlightClientData.get(pos);
         if (cd != null) {
-            renderFloatingText("树木信标", String.format("%.1f", cd.val1),
-                    0x55FF80, pos, px, py, pz, mc);
+            renderFloatingText(I18n.format("overlay.horologium_positioning.tree_beacon"),
+                    String.format("%.1f", cd.val1), 0x55FF80, pos, px, py, pz, mc);
         } else {
             double charge = 0;
             try {
@@ -181,8 +177,8 @@ public class AltarStarlightRenderer {
                 f.setAccessible(true);
                 charge = f.getDouble(beacon);
             } catch (Exception ignored) {}
-            renderFloatingText("树木信标", String.format("%.1f", charge),
-                    0x55FF80, pos, px, py, pz, mc);
+            renderFloatingText(I18n.format("overlay.horologium_positioning.tree_beacon"),
+                    String.format("%.1f", charge), 0x55FF80, pos, px, py, pz, mc);
         }
     }
 
@@ -190,10 +186,10 @@ public class AltarStarlightRenderer {
         BlockPos pos = bore.getPos();
         if (pos.distanceSq(px, py, pz) > RENDER_DISTANCE * RENDER_DISTANCE) return;
 
-        StarlightNetHandler.CachedData cd = StarlightNetHandler.get(pos);
+        StarlightClientData.CachedData cd = StarlightClientData.get(pos);
         if (cd != null) {
-            renderFloatingText("万象泉", (int) cd.val1 + " mB",
-                    0xFF8844, pos, px, py, pz, mc);
+            renderFloatingText(I18n.format("overlay.horologium_positioning.bore"),
+                    (int) cd.val1 + " mB", 0xFF8844, pos, px, py, pz, mc);
         } else {
             int mb = 0;
             try {
@@ -201,7 +197,8 @@ public class AltarStarlightRenderer {
                 f.setAccessible(true);
                 mb = f.getInt(bore);
             } catch (Exception ignored) {}
-            renderFloatingText("万象泉", mb + " mB", 0xFF8844, pos, px, py, pz, mc);
+            renderFloatingText(I18n.format("overlay.horologium_positioning.bore"),
+                    mb + " mB", 0xFF8844, pos, px, py, pz, mc);
         }
     }
 
@@ -225,12 +222,11 @@ public class AltarStarlightRenderer {
 
         String constellationName = "";
         try {
-            // Try highlight first, then activeFound
             hellfirepvp.astralsorcery.common.constellation.IConstellation c = null;
             if (fHighlight != null) c = (hellfirepvp.astralsorcery.common.constellation.IConstellation) fHighlight.get(altar);
             if (c == null && fActiveFound != null) c = (hellfirepvp.astralsorcery.common.constellation.IConstellation) fActiveFound.get(altar);
             if (c != null) {
-                constellationName = net.minecraft.client.resources.I18n.format(c.getUnlocalizedName());
+                constellationName = I18n.format(c.getUnlocalizedName());
             }
         } catch (Exception ignored) {}
 
@@ -241,10 +237,11 @@ public class AltarStarlightRenderer {
             info = "§7-";
         }
 
-        renderFloatingText("共鸣祭坛", info, 0xFFCC00, pos, px, py, pz, mc);
+        renderFloatingText(I18n.format("overlay.horologium_positioning.attunement_altar"),
+                info, 0xFFCC00, pos, px, py, pz, mc);
     }
 
-    // ========== Render ==========
+    // 渲染
     private static void renderFloatingText(String label, String text, int color,
                                             BlockPos pos, double px, double py, double pz, Minecraft mc) {
         double x = pos.getX() + 0.5 - px;
@@ -285,11 +282,11 @@ public class AltarStarlightRenderer {
 
     private static String altarLabel(int ordinal) {
         switch (ordinal) {
-            case 0: return "星辉合成台";
-            case 1: return "星辉祭坛";
-            case 2: return "天辉祭坛";
-            case 3: return "五彩祭坛";
-            default: return "祭坛";
+            case 0: return I18n.format("overlay.horologium_positioning.altar.discovery");
+            case 1: return I18n.format("overlay.horologium_positioning.altar.attunement");
+            case 2: return I18n.format("overlay.horologium_positioning.altar.celestial");
+            case 3: return I18n.format("overlay.horologium_positioning.altar.iridescent");
+            default: return I18n.format("overlay.horologium_positioning.altar.default");
         }
     }
 

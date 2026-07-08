@@ -1,4 +1,4 @@
-package com.xiaoqian.untitled.client.render;
+package com.xiaoqian.untitled.common.binding;
 
 import com.xiaoqian.untitled.Untitled;
 import net.minecraft.nbt.CompressedStreamTools;

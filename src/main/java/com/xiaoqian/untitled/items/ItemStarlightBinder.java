@@ -1,7 +1,7 @@
 package com.xiaoqian.untitled.items;
 
 import com.xiaoqian.untitled.Untitled;
-import com.xiaoqian.untitled.client.render.BinderBindingHandler;
+import com.xiaoqian.untitled.common.binding.BinderBindingHandler;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,7 +14,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
@@ -23,7 +23,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +35,10 @@ public class ItemStarlightBinder extends ModItemBase {
     public ItemStarlightBinder(String name, CreativeTabs tab) {
         super(name, tab);
         setMaxStackSize(1);
+    }
+
+    private static TextComponentTranslation tr(String key, Object... args) {
+        return new TextComponentTranslation("message.horologium_positioning.binder." + key, args);
     }
 
     public static int getMode(ItemStack stack) {
@@ -56,8 +59,7 @@ public class ItemStarlightBinder extends ModItemBase {
         if (player.isSneaking() && hand == EnumHand.MAIN_HAND) {
             if (!world.isRemote) {
                 clearTargets(stack);
-                player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已清空所有选择"));
+                player.sendMessage(tr("cleared"));
             }
             return new ActionResult<>(EnumActionResult.SUCCESS, stack);
         }
@@ -74,7 +76,7 @@ public class ItemStarlightBinder extends ModItemBase {
         TileEntity te = world.getTileEntity(pos);
         if (te == null) return EnumActionResult.PASS;
 
-        // Normal right-click (no shift) on ritual node �� show binding info
+        // 显示绑定信息
         if (!player.isSneaking()) {
             if (isRitualNode(te)) {
                 List<BlockPos> bound = BinderBindingHandler.getServerBindings().get(pos);
@@ -82,21 +84,16 @@ public class ItemStarlightBinder extends ModItemBase {
                 int max = BinderBindingHandler.getMaxBindingCount();
                 int range = BinderBindingHandler.getEffectiveRangeForNode(world, pos);
                 if (count > 0) {
-                    player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已连接: "
-                            + TextFormatting.AQUA + count + "/" + max
-                            + TextFormatting.GREEN + " | 范围: " + TextFormatting.AQUA + range + " 格"));
+                    player.sendMessage(tr("connected", count, max, range));
                 } else {
-                    player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "暂无连接"
-                            + TextFormatting.GRAY + " | 上限: " + max + " | 范围: " + range + " 格"));
+                    player.sendMessage(tr("no_connection", max, range));
                 }
                 return EnumActionResult.SUCCESS;
             }
             return EnumActionResult.PASS;
         }
 
-        // Shift + right-click �� bind/unbind
+        // 绑定/解绑
         int mode = getMode(stack);
 
         if (mode == MODE_UNBIND) {
@@ -112,27 +109,20 @@ public class ItemStarlightBinder extends ModItemBase {
             if (targets.isEmpty()) {
                 if (BinderBindingHandler.getServerBindings().containsKey(pos)) {
                     BinderBindingHandler.unbindNode(pos);
-                    player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已解绑节点"));
+                    player.sendMessage(tr("node_unbound"));
                 } else {
-                    player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "未选择机器"));
+                    player.sendMessage(tr("no_machine_selected"));
                 }
                 return EnumActionResult.SUCCESS;
             }
-List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, targets);
+            List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, targets);
             int boundCount = targets.size() - outOfRange.size();
             if (boundCount > 0) {
-                player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已绑定 "
-                        + TextFormatting.AQUA + boundCount
-                        + TextFormatting.GREEN + " 台机器"));
+                player.sendMessage(tr("bound_machines", boundCount));
             }
             if (!outOfRange.isEmpty()) {
-                player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED
-                        + outOfRange.size() + " 台机器超出范围 (最大 "
-                        + BinderBindingHandler.getEffectiveRangeForNode(world, pos) + " blocks)"));
+                player.sendMessage(tr("out_of_range",
+                        outOfRange.size(), BinderBindingHandler.getEffectiveRangeForNode(world, pos)));
             }
             clearTargets(stack);
             return EnumActionResult.SUCCESS;
@@ -142,17 +132,13 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
             List<BlockPos> targets = getTargets(stack);
             for (BlockPos t : targets) {
                 if (t.equals(pos)) {
-                    player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "已在列表中"));
+                    player.sendMessage(tr("already_selected"));
                     return EnumActionResult.SUCCESS;
                 }
             }
             addTarget(stack, pos);
-            player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[Binder] " + TextFormatting.GREEN + "已选择 ["
-                    + TextFormatting.AQUA + targets.size()
-                    + TextFormatting.GREEN + "] ("
-                    + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")"));
+            player.sendMessage(tr("selected",
+                    targets.size() + 1, pos.getX(), pos.getY(), pos.getZ()));
             return EnumActionResult.SUCCESS;
         }
 
@@ -160,14 +146,13 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
     }
 
     private EnumActionResult handleUnbind(EntityPlayer player, World world, BlockPos pos, TileEntity te, ItemStack stack) {
-        // Unbind by clicking ritual node
+        // 节点解绑
         if (isRitualNode(te)) {
             boolean removed = BinderBindingHandler.unbindNode(pos);
             if (removed) {
-                player.sendMessage(new TextComponentString(
-                        TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已解绑节点"));
+                player.sendMessage(tr("node_unbound"));
             } else {
-                // Try resolving ritual link to pedestal
+                // 锚点转基座
                 String cn = te.getClass().getName();
                 if (cn.contains("TileRitualLink")) {
                     try {
@@ -179,17 +164,15 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
                     } catch (Exception ignored) {}
                 }
                 if (removed) {
-                    player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已解绑关联节点"));
+                    player.sendMessage(tr("linked_node_unbound"));
                 } else {
-                    player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "该节点未绑定"));
+                    player.sendMessage(tr("node_not_bound"));
                 }
             }
             return EnumActionResult.SUCCESS;
         }
 
-        // Unbind by clicking a bound machine
+        // 机器解绑
         if (isMachine(te)) {
             Map<BlockPos, List<BlockPos>> bindings = BinderBindingHandler.getServerBindings();
             for (Map.Entry<BlockPos, List<BlockPos>> entry : bindings.entrySet()) {
@@ -200,19 +183,16 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
                     BinderBindingHandler.triggerSave(world);
                     Untitled.logger.info("[Binder] Removed machine {} from node {}, remaining: {}",
                             pos, entry.getKey(), machines.size());
-                    player.sendMessage(new TextComponentString(
-                            TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "已移除机器"));
+                    player.sendMessage(tr("machine_removed"));
                     if (machines.isEmpty()) {
                         BinderBindingHandler.unbindNode(entry.getKey());
                         Untitled.logger.info("[Binder] Node {} unbound (no machines left)", entry.getKey());
-                        player.sendMessage(new TextComponentString(
-                                TextFormatting.GRAY + "[Binder] " + TextFormatting.RED + "节点已解绑"));
+                        player.sendMessage(tr("node_unbound"));
                     }
                     return EnumActionResult.SUCCESS;
                 }
             }
-            player.sendMessage(new TextComponentString(
-                    TextFormatting.GRAY + "[Binder] " + TextFormatting.YELLOW + "该机器未绑定"));
+            player.sendMessage(tr("machine_not_bound"));
             return EnumActionResult.SUCCESS;
         }
 
@@ -262,11 +242,15 @@ List<BlockPos> outOfRange = BinderBindingHandler.bindMachinesToNode(world, pos, 
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         int mode = getMode(stack);
         if (mode == MODE_BIND) {
-            tooltip.add(TextFormatting.GREEN + "绑定模式");
+            tooltip.add(TextFormatting.GREEN
+                    + net.minecraft.client.resources.I18n.format("tooltip.horologium_positioning.binder.mode_bind"));
         } else {
-            tooltip.add(TextFormatting.RED + "解绑模式");
+            tooltip.add(TextFormatting.RED
+                    + net.minecraft.client.resources.I18n.format("tooltip.horologium_positioning.binder.mode_unbind"));
         }
-        tooltip.add(TextFormatting.GRAY + "Shift+滚轮: 切换模式");
-        tooltip.add(TextFormatting.GRAY + "Shift+右键: 操作");
+        tooltip.add(TextFormatting.GRAY
+                + net.minecraft.client.resources.I18n.format("tooltip.horologium_positioning.binder.switch_mode"));
+        tooltip.add(TextFormatting.GRAY
+                + net.minecraft.client.resources.I18n.format("tooltip.horologium_positioning.binder.use"));
     }
 }

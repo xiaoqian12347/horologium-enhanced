@@ -1,8 +1,11 @@
 package com.xiaoqian.untitled.client.render;
 
 import com.xiaoqian.untitled.items.ItemStarlightBinder;
+import com.xiaoqian.untitled.network.StarlightNetHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -19,13 +22,11 @@ public class BinderScrollHandler {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.player == null) return;
 
-        // Only switch mode when holding Shift + scroll
         if (!mc.player.isSneaking()) return;
 
         ItemStack stack = mc.player.getHeldItemMainhand();
         if (stack.isEmpty() || !(stack.getItem() instanceof ItemStarlightBinder)) return;
 
-        // Cancel the event to prevent hotbar slot change
         event.setCanceled(true);
 
         int currentMode = ItemStarlightBinder.getMode(stack);
@@ -36,20 +37,17 @@ public class BinderScrollHandler {
             newMode = (currentMode - 1 + ItemStarlightBinder.MODE_COUNT) % ItemStarlightBinder.MODE_COUNT;
         }
 
-        // Update client-side NBT
         ItemStarlightBinder.setMode(stack, newMode);
 
-        // Send to server
         StarlightNetHandler.CHANNEL.sendToServer(new StarlightNetHandler.ModeSyncMsg(newMode));
 
-        // Show mode change message
         String modeName;
         if (newMode == ItemStarlightBinder.MODE_BIND) {
-            modeName = "\u00a7a绑定模式";
+            modeName = "\u00a7a" + I18n.format("tooltip.horologium_positioning.binder.mode_bind");
         } else {
-            modeName = "\u00a7c解绑模式";
+            modeName = "\u00a7c" + I18n.format("tooltip.horologium_positioning.binder.mode_unbind");
         }
-        mc.player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                "\u00a77[Binder] " + modeName));
+        mc.player.sendMessage(new TextComponentString(
+                I18n.format("message.horologium_positioning.binder.mode_changed", modeName)));
     }
 }
